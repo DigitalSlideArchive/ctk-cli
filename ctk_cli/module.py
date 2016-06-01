@@ -307,7 +307,7 @@ class CLIParameter(object):
                 self.coordinateSystem = value
             elif key == 'fileExtensions':
                 self.fileExtensions = [ext.strip() for ext in value.split(",")]
-            elif key == 'reference' and self.typ in ('image', 'transform', 'geometry', 'table'):
+            elif key == 'reference' and self.typ in ('image', 'file', 'transform', 'geometry', 'table'):
                 self.reference = value
                 logger.warning("'reference' attribute of %r is not part of the spec yet (CTK issue #623)" % (_tag(elementTree), ))
             elif key == 'type':
