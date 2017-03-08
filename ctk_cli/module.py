@@ -181,7 +181,9 @@ class CLIParameters(list):
     @classmethod
     def parse(cls, elementTree):
         self = cls()
+
         childNodes = _parseElements(self, elementTree, 'parameters')
+
         self.advanced = _parseBool(elementTree.get('advanced', 'false'))
 
         for pnode in childNodes:
@@ -256,9 +258,8 @@ class CLIParameter(object):
 
     def parseValue(self, value):
         """Parse the given value and return result."""
-
         if self.isVector():
-                return list(map(self._pythonType, value.split(',')))
+            return list(map(self._pythonType, value.split(',')))
         if self.typ == 'boolean':
             return _parseBool(value)
         return self._pythonType(value)
@@ -327,7 +328,6 @@ class CLIParameter(object):
         self.subtype = None
 
         for key, value in elementTree.items():
-
             if key == 'multiple':
                 self.multiple = _parseBool(value)
             elif key == 'coordinateSystem' and self.typ in ('point', 'pointfile', 'region'):
@@ -368,11 +368,8 @@ class CLIParameter(object):
         if self.index is not None:
             self.index = int(self.index)
 
-        print self.name, self.default
-
         if self.default:
-
-            try:
+           try:
                 self.default = self.parseValue(self.default)
             except ValueError as e:
                 logger.warning('Could not parse default value of <%s> (%s): %s' % (
