@@ -369,7 +369,7 @@ class CLIParameter(object):
             self.index = int(self.index)
 
         if self.default:
-           try:
+            try:
                 self.default = self.parseValue(self.default)
             except ValueError as e:
                 logger.warning('Could not parse default value of <%s> (%s): %s' % (
