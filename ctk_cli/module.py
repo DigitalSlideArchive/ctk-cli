@@ -181,9 +181,7 @@ class CLIParameters(list):
     @classmethod
     def parse(cls, elementTree):
         self = cls()
-
         childNodes = _parseElements(self, elementTree, 'parameters')
-
         self.advanced = _parseBool(elementTree.get('advanced', 'false'))
 
         for pnode in childNodes:
