@@ -163,7 +163,7 @@ class CLIArgumentParser(argparse.ArgumentParser):
             cur_kwargs = {
                 'dest': param.name,
                 'type': param.parseValue,
-                'help': param.description,
+                'help': param.description
             }
 
             if param.elements is not None:
@@ -176,7 +176,13 @@ class CLIArgumentParser(argparse.ArgumentParser):
                 cur_kwargs['help'] += ' (accepted multiple times)'
 
             if param.default is not None:
-                cur_kwargs['default'] = param.default
+
+                print param.name, param.default
+
+                cur_kwargs['default'] = None
+                if param.default:
+                    cur_kwargs['default'] = param.default
+
                 cur_kwargs['help'] += ' (default: %s)' % param.default
 
             if param.fileExtensions is not None:
