@@ -176,7 +176,11 @@ class CLIArgumentParser(argparse.ArgumentParser):
                 cur_kwargs['help'] += ' (accepted multiple times)'
 
             if param.default is not None:
-                cur_kwargs['default'] = param.default
+
+                cur_kwargs['default'] = None
+                if param.default:
+                    cur_kwargs['default'] = param.default
+
                 cur_kwargs['help'] += ' (default: %s)' % param.default
 
             if param.fileExtensions is not None:

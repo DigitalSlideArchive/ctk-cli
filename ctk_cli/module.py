@@ -154,9 +154,7 @@ class CLIParameters(list):
     @classmethod
     def parse(cls, elementTree):
         self = cls()
-        
         childNodes = _parseElements(self, elementTree, 'parameters')
-        
         self.advanced = _parseBool(elementTree.get('advanced', 'false'))
 
         for pnode in childNodes:
@@ -231,10 +229,18 @@ class CLIParameter(object):
 
     def parseValue(self, value):
         """Parse the given value and return result."""
+
         if self.isVector():
-            return map(self._pythonType, value.split(','))
+
+            if value:
+                return map(self._pythonType, value.split(','))
+            else:
+                return None
+
         if self.typ == 'boolean':
+
             return _parseBool(value)
+
         return self._pythonType(value)
 
     def isOptional(self):
@@ -301,9 +307,10 @@ class CLIParameter(object):
         self.subtype = None
 
         for key, value in elementTree.items():
+
             if key == 'multiple':
                 self.multiple = _parseBool(value)
-            elif key == 'coordinateSystem' and self.typ in ('point', 'pointfile'):
+            elif key == 'coordinateSystem' and self.typ in ('point', 'pointfile', 'region'):
                 self.coordinateSystem = value
             elif key == 'fileExtensions':
                 self.fileExtensions = [ext.strip() for ext in value.split(",")]
@@ -342,6 +349,7 @@ class CLIParameter(object):
             self.index = int(self.index)
 
         if self.default:
+
             try:
                 self.default = self.parseValue(self.default)
             except ValueError, e:
