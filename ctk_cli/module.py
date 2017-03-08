@@ -3,7 +3,7 @@
 
 import os, logging
 import xml.etree.ElementTree as ET
-from execution import isCLIExecutable, getXMLDescription
+from .execution import isCLIExecutable, getXMLDescription
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ def _parseBool(x):
         return True
     if x in ('false', 'False', '0'):
         return False
-    raise ValueError, "cannot convert %r to boolean" % (x, )
+    raise ValueError("cannot convert %r to boolean" % (x, ))
 
 def _tag(element):
     """Return element.tag with xmlns stripped away."""
@@ -75,22 +75,49 @@ class CLIModule(list):
 
     __slots__ = ('path', ) + tuple(map(_tagToIdentifier, REQUIRED_ELEMENTS + OPTIONAL_ELEMENTS))
 
-    def __init__(self, path, env = None):
+    def __init__(self, path = None, env = None, stream = None):
+        """
+        Parse a CLI specification from an XML document. This class can be
+        instantiated in three different modes:
+
+        1. Pass the ``path`` parameter that points to a CLI executable. This
+           mode will run the executable in a subprocess, passing "--xml"
+           and parsing the output.
+        2. Pass the ``path`` parameter representing the path to an XML
+           file on disk that contains the CLI description.
+        3. Pass a file-like object in the ``stream`` kwarg that contains
+           the XML document to be parsed.
+
+        :param path: The path on the filesystem of either the CLI to
+            be interrogated, or a CLI XML description document.
+        :param env: If using mode 1 described above, setting this parameter
+            causes "env=<value>" to be passed as an additional command line argument
+            when invoking the subprocess to describe the CLI.
+        :param stream: An open file-like object that will stream the CLI
+            XML description document.
+        """
         self.path = path
 
-        if isCLIExecutable(path):
+        if path and isCLIExecutable(path):
             elementTree = getXMLDescription(path, env = env)
-        else:
-            with file(path) as f:
+        elif path:
+            with open(path) as f:
                 elementTree = ET.parse(f)
+        elif stream is not None:
+            elementTree = ET.parse(stream)
+        else:
+            raise RuntimeError('You must pass either a path or stream when instantiating CLIModule.')
 
         self._parse(elementTree.getroot())
 
     def __repr__(self):
         return '<CLIModule %r>' % (self.name, )
-        
+
     @property
     def name(self):
+        if self.path is None:
+            return None
+
         result = os.path.basename(self.path)
         base, ext = os.path.splitext(result)
         if ext in ('.exe', '.xml', '.py'):
@@ -154,9 +181,9 @@ class CLIParameters(list):
     @classmethod
     def parse(cls, elementTree):
         self = cls()
-        
+
         childNodes = _parseElements(self, elementTree, 'parameters')
-        
+
         self.advanced = _parseBool(elementTree.get('advanced', 'false'))
 
         for pnode in childNodes:
@@ -206,7 +233,7 @@ class CLIParameter(object):
     OPTIONAL_ELEMENTS = (# either 'index' or at least one of 'flag' or 'longflag' is required
                          'flag', 'longflag', 'index',
                          'default', 'channel')
-    
+
     __slots__ = ("typ", "hidden", "_pythonType") + REQUIRED_ELEMENTS + OPTIONAL_ELEMENTS + (
                  "constraints", # scalarVectorType, scalarType
                  "multiple", # multipleType
@@ -219,20 +246,20 @@ class CLIParameter(object):
 
     def __str__(self):
         return "%s parameter '%s'" % (self.typ, self.identifier())
-        
+
     def __repr__(self):
         return '<CLIParameter %r of type %s>' % (self.identifier(), self.typ)
-        
+
     def identifier(self):
         result = self.name if self.name else self.longflag.lstrip('-')
         if not result:
-            raise RuntimeError, "Cannot identify parameter either by name or by longflag (both missing)"
+            raise RuntimeError("Cannot identify parameter either by name or by longflag (both missing)")
         return result
 
     def parseValue(self, value):
         """Parse the given value and return result."""
         if self.isVector():
-            return map(self._pythonType, value.split(','))
+            return list(map(self._pythonType, value.split(',')))
         if self.typ == 'boolean':
             return _parseBool(value)
         return self._pythonType(value)
@@ -344,14 +371,14 @@ class CLIParameter(object):
         if self.default:
             try:
                 self.default = self.parseValue(self.default)
-            except ValueError, e:
+            except ValueError as e:
                 logger.warning('Could not parse default value of <%s> (%s): %s' % (
                     _tag(elementTree), self.name, e))
 
         if self.typ.endswith('-enumeration'):
             try:
-                self.elements = map(self.parseValue, elements)
-            except ValueError, e:
+                self.elements = list(map(self.parseValue, elements))
+            except ValueError as e:
                 logger.warning('Problem parsing enumeration element values of <%s> (%s): %s' % (
                     _tag(elementTree), self.name, e))
             if not elements:
@@ -368,7 +395,7 @@ class CLIConstraints(object):
     REQUIRED_ELEMENTS = ('step', )
 
     OPTIONAL_ELEMENTS = ('minimum', 'maximum')
-    
+
     __slots__ = REQUIRED_ELEMENTS + OPTIONAL_ELEMENTS
 
     @classmethod

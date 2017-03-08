@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "ctk-cli",
-    version = "1.3.1",
+    version = "1.4",
     packages = find_packages(),
     description = "Python interface for inspecting and running CLI modules (as defined by CommonTK)",
     license = 'Apache 2.0',
@@ -12,7 +12,8 @@ setup(
         'Environment :: Web Environment',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2'
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
     ],
     author='Hans Meine',
     author_email='hans_meine@gmx.net',
