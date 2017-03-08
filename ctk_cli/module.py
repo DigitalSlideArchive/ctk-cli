@@ -258,11 +258,9 @@ class CLIParameter(object):
         """Parse the given value and return result."""
 
         if self.isVector():
-            return list(map(self._pythonType, value.split(',')))
+                return list(map(self._pythonType, value.split(',')))
         if self.typ == 'boolean':
-
             return _parseBool(value)
-
         return self._pythonType(value)
 
     def isOptional(self):
@@ -369,6 +367,8 @@ class CLIParameter(object):
 
         if self.index is not None:
             self.index = int(self.index)
+
+        print self.name, self.default
 
         if self.default:
 
